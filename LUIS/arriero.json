@@ -1,0 +1,432 @@
+{
+  "luis_schema_version": "1.2.0",
+  "name": "arriero",
+  "desc": "Backlog API understanding.",
+  "culture": "en-us",
+  "intents": [
+    {
+      "Name": "intent.backlog.diskusage",
+      "Children": []
+    },
+    {
+      "Name": "intent.backlog.user.update",
+      "Children": []
+    },
+    {
+      "Name": "intent.backlog.user.create",
+      "Children": []
+    },
+    {
+      "Name": "intent.backlog.user.delete",
+      "Children": []
+    },
+    {
+      "Name": "None",
+      "Children": []
+    }
+  ],
+  "entities": [
+    {
+      "Name": "entity.backlog.user.id",
+      "Children": []
+    },
+    {
+      "Name": "entity.backlog.user.password",
+      "Children": []
+    },
+    {
+      "Name": "entity.backlog.user.name",
+      "Children": []
+    },
+    {
+      "Name": "entity.backlog.user.role",
+      "Children": []
+    },
+    {
+      "Name": "entity.backlog.user.email",
+      "Children": []
+    }
+  ],
+  "bing_entities": [
+    "datetime",
+    "ordinal",
+    "number"
+  ],
+  "actions": [
+    {
+      "actionName": "intent.backlog.user.create",
+      "intentName": "intent.backlog.user.create",
+      "actionParameters": [
+        {
+          "parameterName": "name",
+          "entityName": "entity.backlog.user.name",
+          "required": true
+        },
+        {
+          "parameterName": "id",
+          "entityName": "entity.backlog.user.id",
+          "required": true
+        },
+        {
+          "parameterName": "e-mail",
+          "entityName": "entity.backlog.user.email",
+          "required": true
+        },
+        {
+          "parameterName": "password",
+          "entityName": "entity.backlog.user.password",
+          "required": true
+        },
+        {
+          "parameterName": "role",
+          "entityName": "entity.backlog.user.role",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "model_features": [],
+  "regex_features": [],
+  "utterances": [
+    {
+      "text": "current disk space",
+      "intent": "intent.backlog.diskusage",
+      "entities": []
+    },
+    {
+      "text": "available disk space",
+      "intent": "intent.backlog.diskusage",
+      "entities": []
+    },
+    {
+      "text": "disk usage",
+      "intent": "intent.backlog.diskusage",
+      "entities": []
+    },
+    {
+      "text": "create administrator joe with email joe@microsoft.com and id joemic and password blablabla",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 1,
+          "endPos": 1
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 12,
+          "endPos": 12
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 15,
+          "endPos": 15
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 5,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "create user mike as mikey with e-mail address mike@junior.net and password something123",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 1,
+          "endPos": 1
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 17,
+          "endPos": 17
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 10,
+          "endPos": 14
+        }
+      ]
+    },
+    {
+      "text": "create user mike falley as mikey with address mkey@fal.com and password root123",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 1,
+          "endPos": 1
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 15,
+          "endPos": 15
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 8,
+          "endPos": 12
+        }
+      ]
+    },
+    {
+      "text": "add viewer account for haley pharon with user id hpharon, her email is hpharon@bloop.com and her password should be trouble$@1",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 1,
+          "endPos": 1
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 24,
+          "endPos": 27
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 14,
+          "endPos": 18
+        }
+      ]
+    },
+    {
+      "text": "remove user username13",
+      "intent": "intent.backlog.user.delete",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "delete user account randomuser",
+      "intent": "intent.backlog.user.delete",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "remove user with name haley pharon",
+      "intent": "intent.backlog.user.delete",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 4,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "change user role for haley phallon to guest reporter",
+      "intent": "intent.backlog.user.update",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "upgrade mkey2 to administrator",
+      "intent": "intent.backlog.user.update",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 1,
+          "endPos": 1
+        }
+      ]
+    },
+    {
+      "text": "set email for mkey2 to mkey2@blurp.xxx",
+      "intent": "intent.backlog.user.update",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 5,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "change email of blurpxx to blurpzor@orwa.xyq",
+      "intent": "intent.backlog.user.update",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 5,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "delete account blurzor2",
+      "intent": "intent.backlog.user.delete",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "create new user for chris mcphierson as cmcp at chris.mcphierson@gmail.com with administrator priveleges and password stinkyshit2",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 17,
+          "endPos": 17
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 21,
+          "endPos": 21
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 11,
+          "endPos": 15
+        }
+      ]
+    },
+    {
+      "text": "new user name - alley shit, id - ashit, email - ashit@bl.com, password - furby, role - guest viewer",
+      "intent": "intent.backlog.user.create",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.name",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "entity.backlog.user.role",
+          "startPos": 25,
+          "endPos": 26
+        },
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "entity.backlog.user.password",
+          "startPos": 21,
+          "endPos": 21
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 13,
+          "endPos": 17
+        }
+      ]
+    },
+    {
+      "text": "not sure what to say right now",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "man you totally dont get what im saying",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "change mkey his email to shitbreather@fuck.com",
+      "intent": "intent.backlog.user.update",
+      "entities": [
+        {
+          "entity": "entity.backlog.user.id",
+          "startPos": 1,
+          "endPos": 1
+        },
+        {
+          "entity": "entity.backlog.user.email",
+          "startPos": 5,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "what what",
+      "intent": "None",
+      "entities": []
+    }
+  ]
+}
