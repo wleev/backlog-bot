@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BacklogBot", "BacklogBot\BacklogBot.csproj", "{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Backlog.Client", "Backlog.Client\Backlog.Client.fsproj", "{CEDBC2AE-5C58-4559-80A9-CD8F48060589}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Backlog.Client.Test", "Backlog.Client.Test\Backlog.Client.Test.fsproj", "{70B7D555-0432-4677-A742-ADC84D942163}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8BA1066-5695-4D71-ABB4-65E5A5E0C3D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEDBC2AE-5C58-4559-80A9-CD8F48060589}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEDBC2AE-5C58-4559-80A9-CD8F48060589}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEDBC2AE-5C58-4559-80A9-CD8F48060589}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEDBC2AE-5C58-4559-80A9-CD8F48060589}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70B7D555-0432-4677-A742-ADC84D942163}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70B7D555-0432-4677-A742-ADC84D942163}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70B7D555-0432-4677-A742-ADC84D942163}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70B7D555-0432-4677-A742-ADC84D942163}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
