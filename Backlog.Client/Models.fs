@@ -1,14 +1,18 @@
-﻿module Models
+﻿module Backlog.Client.Models
 
 open Newtonsoft.Json
 
-type User (id:int, userId:string, name:string, roleType:int, lang:string, mailAddress:string) =
-    member this.Id = id
-    member this.UserId = userId
-    member this.Name = name
-    member this.RoleType = roleType
-    member this.Lang = lang
-    member this.MailAddress = mailAddress
+type User [<JsonConstructor>](id:int, userId:string, name:string, password:string, roleType:int, lang:string, mailAddress:string) =
+    new(userId:string, name:string, password:string, roleType:int, mailAddress:string) = User(0, userId, name, password, roleType, "en", mailAddress)
 
-    member this.ToFormValues = seq ["id", this.Id.ToString(); "userId", this.UserId; "name", this.Name; "roleType", this.RoleType.ToString(); "lang", this.Lang; "mailAddress", this.MailAddress]
+    member val Id = id
+    member val UserId = userId
+    member val Name = name with get,set
+    member val Password = password with get,set
+    member val RoleType = roleType with get,set
+    member val Lang = lang
+    member val MailAddress = mailAddress with get,set
+
+    member this.ToAddFormValues = seq ["userId", this.UserId; "name", this.Name; "password", this.Password; "roleType", this.RoleType.ToString(); "mailAddress", this.MailAddress]
+    member this.ToUpdateFormValues = seq ["name", this.Name; "roleType", this.RoleType.ToString(); "mailAddress", this.MailAddress]
 

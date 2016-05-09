@@ -5,6 +5,7 @@
 // https://code.google.com/p/unquote/
 
 open Backlog.Client.Api
+open Backlog.Client.Models
 
 open FsUnit
 open FsCheck
@@ -23,9 +24,43 @@ let ``Getting user with id 76964 from Backlog space should return user wlee with
     user.Value.MailAddress |> should equal "wlee@isabot.net"
 
 [<Test>]
-let ``Getting all users from sample Backlog space should return a list of 2 users: wlee and agata`` () =
-    let users = Users.getUsers
+let ``Getting all users from sample Backlog space should at least contain these users: wlee and agata`` () =
+    let users = Users.getUsers()
     users.IsSome |> should equal true
-    users.Value.Length |> should equal 2
     users.Value |> List.map (fun u -> u.UserId) |> should contain "wlee"
     users.Value |> List.map (fun u -> u.UserId) |> should contain "agata"
+
+[<Test>]
+let ``Adding user should return an updated user object with id and after removing it, it should no longer show up in all users list`` () =
+    let newUser = User("sampleUserId", "Sample User", "sampleP@ssw0rd123", 2, "sample@user.com")
+    let createdUser = Users.addUser newUser
+
+    createdUser.IsSome |> should equal true
+    createdUser.Value.Id |> should be (greaterThan 0)
+
+    let hasDeletedUser = Users.deleteUser createdUser.Value.Id
+    hasDeletedUser |> should equal true
+    let users = Users.getUsers()
+    users.Value |> List.map (fun u -> u.UserId) |> should not' (contain "sampleUserId")
+
+[<Test>]
+let ``Adding and updating new user should return updated user object, user lists should no longer yield newly created user after deleting it`` () =
+    let newUser = User("otherUserId", "Sample User", "sampleP@ssw0rd123", 2, "sample@user.com")
+    let createdUser = Users.addUser newUser
+    let postAddUsers = Users.getUsers()
+
+    createdUser.IsSome |> should equal true
+    createdUser.Value.Id |> should be (greaterThan 0)
+    postAddUsers.Value |> List.map (fun u -> u.UserId) |> should contain "otherUserId"
+
+    let updatingUser = createdUser.Value
+    updatingUser.Name <- "Random username 123#"
+    let updatedUser = Users.updateUser updatingUser
+
+    let postUpdateUsers = Users.getUsers()
+    postUpdateUsers.Value |> List.map (fun u -> u.Name) |> should contain "Random username 123#"
+
+    let hasDeletedUser = Users.deleteUser createdUser.Value.Id
+    hasDeletedUser |> should equal true
+    let postDeleteUsers = Users.getUsers()
+    postDeleteUsers.Value |> List.map (fun u -> u.UserId) |> should not' (contain "otherUserId")
