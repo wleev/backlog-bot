@@ -6,9 +6,11 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
+using Microsoft.Bot.Connector;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -25,11 +27,10 @@ namespace BacklogBot.Dialogs
         public const string ENTITY_USER_EMAIL = "entity.backlog.user.email";
 
         public const string INTENT_DISK_USAGE = "intent.backlog.diskusage";
+        public const string INTENT_USER_ALL = "intent.backlog.user.all";
         public const string INTENT_USER_CREATE = "intent.backlog.user.create";
         public const string INTENT_USER_REMOVE = "intent.backlog.user.delete";
         public const string INTENT_USER_UPDATE = "intent.backlog.user.update";
-
-        public class RoleNotFoundException : Exception { }
 
         public bool TryParseUser(LuisResult result, out BacklogUser user)
         {
@@ -128,6 +129,33 @@ namespace BacklogBot.Dialogs
             context.Wait(MessageReceived);
         }
 
+        [LuisIntent(INTENT_USER_ALL)]
+        public async Task GetAllUsers(IDialogContext context, LuisResult result)
+        {
+            try
+            {
+                var users = Api.Users.getUsers();
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine("# List of all users");
+                foreach (var user in users.Value)
+                {
+                    messageBuilder.AppendLine($"* {user.UserId} - {user.Name} - {user.MailAddress} - {user.RoleType}");
+                }
+                messageBuilder.AppendLine("---");
+                messageBuilder.AppendLine("Those were all the users!");
+
+                await context.PostAsync(messageBuilder.ToString());
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
+            }
+            finally
+            {
+                context.Wait(MessageReceived);
+            }
+        }
+
         [LuisIntent(INTENT_USER_CREATE)]
         public async Task CreateBacklogUser(IDialogContext context, LuisResult result)
         {
@@ -189,6 +217,13 @@ namespace BacklogBot.Dialogs
                 await context.PostAsync("Could not find user with given id.");
             }
 
+            context.Wait(MessageReceived);
+        }
+
+        [LuisIntent("None")]
+        public async Task NothingUnderstood(IDialogContext context, LuisResult result)
+        {
+            await context.PostAsync("Sorry my supreme commander, I did not understand your command.");
             context.Wait(MessageReceived);
         }
     }

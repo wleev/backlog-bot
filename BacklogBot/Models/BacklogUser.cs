@@ -33,6 +33,8 @@ namespace BacklogBot.Models
         }
     }
 
+    public class RoleNotFoundException : Exception { }
+
     [Serializable]
     public sealed class BacklogRole : IEquatable<BacklogRole>
     {
