@@ -3,6 +3,7 @@ using Microsoft.Bot.Builder.FormFlow;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace BacklogBot.Dialogs.Orders
@@ -46,10 +47,24 @@ namespace BacklogBot.Dialogs.Orders
             ActiveDelegate<UserCreationOrder> doesntHavePassword = (user) => String.IsNullOrEmpty(user.Password);
             ActiveDelegate<UserCreationOrder> doesntHaveRole = (user) => !user.Role.HasValue;
 
+            ValidateAsyncDelegate<UserCreationOrder> passwordHasMinLength = async (state, response) =>
+            {
+                var result = new ValidateResult { IsValid = true };
+                var password = response as string;
+                result.Value = password;
+                if (password.Length < 7)
+                {
+                    result.Feedback = "Password must be longer than 7 characters";
+                    result.IsValid = false;
+                }
+
+                return result;
+            };
+
             formBuilder.Field(nameof(Id), doesntHaveId);
             formBuilder.Field(nameof(Name), doesntHaveName);
             formBuilder.Field(nameof(MailAddress), doesntHaveMail);
-            formBuilder.Field(nameof(Password), doesntHavePassword);
+            formBuilder.Field(nameof(Password), doesntHavePassword, passwordHasMinLength);
             formBuilder.Field(nameof(Role), doesntHaveRole);
             formBuilder.Confirm("Do you really really want to create this user?");
             formBuilder.Message("I will now try to add this user...");

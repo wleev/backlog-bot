@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using static Backlog.Client.Models;
 
 namespace BacklogBot.Dialogs
 {
@@ -159,16 +160,18 @@ namespace BacklogBot.Dialogs
         [LuisIntent(INTENT_USER_CREATE)]
         public async Task CreateBacklogUser(IDialogContext context, LuisResult result)
         {
+            BacklogUser newUser;
+            bool extraInputRequired = false;
             try
             {
-                BacklogUser newUser;
                 if (TryParseUser(result, out newUser))
                 {
-                    await context.PostAsync($"You created a new user with id {newUser.Id}.");
-                    context.Wait(MessageReceived);
+                    var createdUser = CreateUser(newUser.ToApiUser());
+                    await context.PostAsync($"You created a new user with id {createdUser.UserId} (internal id: {createdUser.Id}).");
                 }
                 else
                 {
+                    extraInputRequired = true;
                     var creationOrder = new UserCreationOrder(newUser);
                     var formDialog = new FormDialog<UserCreationOrder>(creationOrder, UserCreationOrder.CreateForm, FormOptions.PromptInStart);
                     context.Call(formDialog, UserCreationOrderCompleted);
@@ -177,16 +180,37 @@ namespace BacklogBot.Dialogs
             catch (RoleNotFoundException)
             {
                 await context.PostAsync("Could not find the specified role.");
-                context.Wait(MessageReceived);
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
+            }
+            finally
+            {
+                if (!extraInputRequired)
+                    context.Wait(MessageReceived);
             }
         }
 
         private async Task UserCreationOrderCompleted(IDialogContext context, IAwaitable<UserCreationOrder> result)
         {
-            //transform order into user and post it to webservice
-            await context.PostAsync("You created a new user !");
+            var order = await result;
+            var newUser = new User(order.Id, order.Name, order.Password, order.Role.Value, order.MailAddress);
+            var createdUser = CreateUser(newUser);
+            await context.PostAsync($"You created a new user with id {createdUser.UserId} (internal id: {createdUser.Id}).");
 
             context.Wait(MessageReceived);
+        }
+
+        private User CreateUser(User user)
+        {
+            var userOption = Api.Users.addUser(user);
+
+            //need to handle this better
+            if (userOption.IsNone())
+                throw new Exception("Placeholder exception for failing to create user.");
+
+            return userOption.Value;
         }
 
         [LuisIntent(INTENT_USER_UPDATE)]

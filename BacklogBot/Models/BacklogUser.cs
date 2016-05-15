@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static Backlog.Client.Models;
 
 namespace BacklogBot.Models
 {
@@ -30,6 +31,12 @@ namespace BacklogBot.Models
                 && Email.Equals(other.Email)
                 && Name.Equals(other.Name)
                 && Role.Equals(other.Role);
+        }
+
+        public User ToApiUser()
+        {
+            int roleId = BacklogRole.FindMatchingRoleByName(Role).Id;
+            return new User(Id, Name, Password, roleId, Email);
         }
     }
 
