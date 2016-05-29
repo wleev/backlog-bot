@@ -16,6 +16,11 @@ namespace BacklogBot
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        private IDialog<UserCreationOrder> MakeRoot()
+        {
+            return Chain.From(() => new BacklogDialog()).DefaultIfException();
+        }
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -24,7 +29,14 @@ namespace BacklogBot
         {
             if (message.Type == "Message")
             {
-                return await Conversation.SendAsync(message, () => new BacklogDialog());
+                //try
+                //{
+                return await Conversation.SendAsync(message, MakeRoot);
+                //}
+                //catch (Exception e)
+                //{
+                //    return message.CreateReplyMessage("Woops!");
+                //}
             }
             else
             {

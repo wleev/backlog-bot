@@ -8,12 +8,12 @@ let nUnitRunner =
         member x.OnStartFixture t = ()
         member x.OnArguments(ntest, args, every) = ()
         member x.OnShrink(args, everyShrink) = ()
-        member x.OnFinished(name, result) = 
-            match result with 
-            | TestResult.True data -> 
+        member x.OnFinished(name, result) =
+            match result with
+            | TestResult.True data ->
                 printfn "%s" (Runner.onFinishedToString name result)
             | _ -> Assert.Fail(Runner.onFinishedToString name result) }
-   
+
 let private nUnitConfig = { Config.Default with Runner = nUnitRunner }
 
 let fsCheck name testable =

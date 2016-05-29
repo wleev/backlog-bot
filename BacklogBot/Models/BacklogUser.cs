@@ -58,6 +58,7 @@ namespace BacklogBot.Models
             Name = name;
         }
 
+        private static readonly BacklogRole Default = new BacklogRole(-1, "None");
         private static readonly BacklogRole Administrator = new BacklogRole(1, "Administrator");
         private static readonly BacklogRole NormalUser = new BacklogRole(2, "Normal User");
         private static readonly BacklogRole Reporter = new BacklogRole(3, "Reporter");
@@ -78,8 +79,8 @@ namespace BacklogBot.Models
         public static BacklogRole FindMatchingRoleByName(string roleName)
         {
             if (String.IsNullOrEmpty(roleName))
-                return null;
-            return AllRoles.SingleOrDefault(role => String.Equals(role.Name, roleName, StringComparison.InvariantCultureIgnoreCase));
+                return Default;
+            return AllRoles.SingleOrDefault(role => String.Equals(role.Name, roleName, StringComparison.InvariantCultureIgnoreCase)) ?? Default;
         }
 
         public bool Equals(BacklogRole other)

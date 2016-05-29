@@ -33,9 +33,9 @@ namespace BacklogBot.Dialogs
         public const string INTENT_USER_REMOVE = "intent.backlog.user.delete";
         public const string INTENT_USER_UPDATE = "intent.backlog.user.update";
 
-        public bool TryParseUser(LuisResult result, out BacklogUser user)
+        public bool TryParseUser(LuisResult result, out User user)
         {
-            user = new BacklogUser();
+            user = new User();
 
             EntityRecommendation id;
             EntityRecommendation name;
@@ -50,77 +50,38 @@ namespace BacklogBot.Dialogs
             hasParsed &= result.TryFindEntity(ENTITY_USER_ROLE, out role);
             hasParsed &= result.TryFindEntity(ENTITY_USER_PASSWORD, out password);
 
-            user.Id = id?.Entity;
+            user.UserId = id?.Entity;
             user.Name = name?.Entity;
-            user.Email = email?.Entity;
-            user.Role = role?.Entity;
+            user.MailAddress = email?.Entity;
+            user.RoleType = BacklogRole.FindMatchingRoleByName(role?.Entity).Id;
             user.Password = password?.Entity;
 
-            //var roleObj = Role.FindMatchingRoleByName(role.Entity);
-            //if (roleObj != null)
-            //    throw new RoleNotFoundException();
-
-            //var userToAdd = new Models.User(id.Entity, name.Entity, password.Entity, roleObj.Id, email.Entity);
-            //var userResult = Api.Users.addUser(userToAdd);
-            //if (userResult.IsSome())
-            //    user = userResult.Value;
-
             return hasParsed;
         }
 
-        public bool TryGetUser(LuisResult result, out BacklogUser user)
+        public bool TryUpdateUser(LuisResult result, out User user)
         {
-            user = null;
+            user = new User();
 
-            EntityRecommendation id;
+            EntityRecommendation id, name, email, role, password;
 
-            var hasParsed = true;
-            hasParsed &= result.TryFindEntity(ENTITY_USER_ID, out id);
-
-            //where we should be calling the api
-            if (hasParsed)
-                user = new BacklogUser { Id = id.Entity };
-
-            return user != null;
-        }
-
-        public bool TryRemoveUser(LuisResult result)
-        {
-            EntityRecommendation id;
-
-            var hasParsed = true;
-            hasParsed &= result.TryFindEntity(ENTITY_USER_ID, out id);
-
-            //where we should be calling the api to remove user
-
-            return hasParsed;
-        }
-
-        public bool TryUpdateUser(LuisResult result, out BacklogUser user)
-        {
-            BacklogUser currentUser;
-            TryGetUser(result, out currentUser);
-
-            user = currentUser;
-
-            EntityRecommendation name;
-            EntityRecommendation email;
-            EntityRecommendation role;
-            EntityRecommendation password;
+            if (result.TryFindEntity(ENTITY_USER_ID, out id))
+                user.UserId = id.Entity;
 
             if (result.TryFindEntity(ENTITY_USER_NAME, out name))
                 user.Name = name.Entity;
 
             if (result.TryFindEntity(ENTITY_USER_EMAIL, out email))
-                user.Email = email.Entity;
+                user.MailAddress = email.Entity;
 
             if (result.TryFindEntity(ENTITY_USER_ROLE, out role))
-                user.Role = role.Entity;
+                user.RoleType = BacklogRole.FindMatchingRoleByName(role.Entity).Id;
 
             if (result.TryFindEntity(ENTITY_USER_PASSWORD, out password))
                 user.Password = password.Entity;
 
-            return !currentUser.Equals(user);
+            //check if any updates were passed and if we have a user id
+            return user.ToUpdateFormValues.Count() > 0 && !String.IsNullOrEmpty(user.UserId);
         }
 
         [LuisIntent(INTENT_DISK_USAGE)]
@@ -135,10 +96,10 @@ namespace BacklogBot.Dialogs
         {
             try
             {
-                var users = Api.Users.getUsers();
+                var usersResult = Api.Users.getUsers();
                 var messageBuilder = new StringBuilder();
                 messageBuilder.AppendLine("# List of all users");
-                foreach (var user in users.Value)
+                foreach (var user in usersResult.Value.Value)
                 {
                     messageBuilder.AppendLine($"* {user.UserId} - {user.Name} - {user.MailAddress} - {user.RoleType}");
                 }
@@ -160,20 +121,20 @@ namespace BacklogBot.Dialogs
         [LuisIntent(INTENT_USER_CREATE)]
         public async Task CreateBacklogUser(IDialogContext context, LuisResult result)
         {
-            BacklogUser newUser;
+            User newUser;
             bool extraInputRequired = false;
             try
             {
                 if (TryParseUser(result, out newUser))
                 {
-                    var createdUser = CreateUser(newUser.ToApiUser());
+                    var createdUser = CreateUser(newUser);
                     await context.PostAsync($"You created a new user with id {createdUser.UserId} (internal id: {createdUser.Id}).");
                 }
                 else
                 {
                     extraInputRequired = true;
                     var creationOrder = new UserCreationOrder(newUser);
-                    var formDialog = new FormDialog<UserCreationOrder>(creationOrder, UserCreationOrder.CreateForm, FormOptions.PromptInStart);
+                    var formDialog = new FormDialog<UserCreationOrder>(creationOrder, UserCreationOrder.CreateAddForm, FormOptions.PromptInStart);
                     context.Call(formDialog, UserCreationOrderCompleted);
                 }
             }
@@ -183,7 +144,8 @@ namespace BacklogBot.Dialogs
             }
             catch (Exception e)
             {
-                await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
+                await context.PostAsync(e.Message);
+                //await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
             }
             finally
             {
@@ -194,10 +156,21 @@ namespace BacklogBot.Dialogs
 
         private async Task UserCreationOrderCompleted(IDialogContext context, IAwaitable<UserCreationOrder> result)
         {
-            var order = await result;
-            var newUser = new User(order.Id, order.Name, order.Password, order.Role.Value, order.MailAddress);
-            var createdUser = CreateUser(newUser);
-            await context.PostAsync($"You created a new user with id {createdUser.UserId} (internal id: {createdUser.Id}).");
+            try
+            {
+                var order = await result;
+                var newUser = new User(order.Id, order.Name, order.Password, order.Role.Value, order.MailAddress);
+                var createdUser = CreateUser(newUser);
+                await context.PostAsync($"You created a new user with id {createdUser.UserId} (internal id: {createdUser.Id}).");
+            }
+            catch (OperationCanceledException)
+            {
+                await context.PostAsync("You canceled the form!");
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync(e.Message);
+            }
 
             context.Wait(MessageReceived);
         }
@@ -206,42 +179,157 @@ namespace BacklogBot.Dialogs
         {
             var userOption = Api.Users.addUser(user);
 
+            if (userOption.StatusCode == 404)
+                throw new Exception($"Couldnt find user with id: {user.UserId}");
             //need to handle this better
-            if (userOption.IsNone())
+            if (userOption.Value.IsNone())
                 throw new Exception("Placeholder exception for failing to create user.");
 
-            return userOption.Value;
+            return userOption.Value.Value;
         }
 
         [LuisIntent(INTENT_USER_UPDATE)]
         public async Task UpdateBacklogUser(IDialogContext context, LuisResult result)
         {
-            BacklogUser updatedUser;
-            if (TryUpdateUser(result, out updatedUser))
+            User updateUser;
+            bool extraInputRequired = false;
+            try
             {
-                await context.PostAsync($"You updated user with id {updatedUser.Id}.");
+                if (TryUpdateUser(result, out updateUser))
+                {
+                    var updatedUser = UpdateUser(updateUser);
+                    await context.PostAsync($"You updated user with id {updatedUser.Id}.");
+                }
+                else
+                {
+                    extraInputRequired = true;
+                    var updateOrder = new UserUpdateOrder(updateUser);
+                    var formDialog = new FormDialog<UserUpdateOrder>(updateOrder, UserUpdateOrder.CreateUpdateForm, FormOptions.PromptInStart);
+                    context.Call(formDialog, UserUpdateOrderCompleted);
+                }
             }
-            else
+            catch (Exception e)
             {
-                await context.PostAsync("You did not pass any fields to be updated.");
+                await context.PostAsync(e.Message);
+                // await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
+            }
+            finally
+            {
+                if (!extraInputRequired)
+                    context.Wait(MessageReceived);
+            }
+        }
+
+        private async Task UserUpdateOrderCompleted(IDialogContext context, IAwaitable<UserUpdateOrder> result)
+        {
+            try
+            {
+                var order = await result;
+                var newUser = new User(order.Id, order.Name, order.Password, order.Role.GetValueOrDefault(-1), order.MailAddress);
+                var updatedUser = UpdateUser(newUser);
+                await context.PostAsync($"You updated the user with id {updatedUser.UserId} (internal id: {updatedUser.Id}).");
+            }
+            catch (OperationCanceledException)
+            {
+                await context.PostAsync("You canceled the form!");
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync(e.Message);
             }
 
             context.Wait(MessageReceived);
         }
 
+        private User UpdateUser(User user)
+        {
+            var userOption = Api.Users.updateUser(user);
+
+            if (userOption.StatusCode == 404)
+                throw new Exception($"Couldnt find user with id: {user.UserId}");
+            //need to handle this better
+            if (userOption.Value.IsNone())
+                throw new Exception("Placeholder exception for failing to create user.");
+
+            return userOption.Value.Value;
+        }
+
         [LuisIntent(INTENT_USER_REMOVE)]
         public async Task RemoveBacklogUser(IDialogContext context, LuisResult result)
         {
-            if (TryRemoveUser(result))
+            EntityRecommendation userId;
+            bool extraInputRequired = false;
+            try
             {
-                await context.PostAsync($"You removed user with id.");
+                if (result.TryFindEntity(ENTITY_USER_ID, out userId))
+                {
+                    var didDelete = DeleteUser(userId.Entity);
+                    if (didDelete)
+                        await context.PostAsync($"You successfully deleted the user with id : {userId.Entity}");
+                    else
+                        await context.PostAsync($"Failed to delete user.");
+                }
+                else
+                {
+                    extraInputRequired = true;
+                    var deleteOrder = new UserDeleteOrder();
+                    var formDialog = new FormDialog<UserDeleteOrder>(deleteOrder, UserDeleteOrder.CreateDeleteForm, FormOptions.PromptInStart);
+                    context.Call(formDialog, UserDeleteOrderCompleted);
+                }
             }
-            else
+            catch (Exception e)
             {
-                await context.PostAsync("Could not find user with given id.");
+                await context.PostAsync(e.Message);
+                //await context.PostAsync("I messed up! Please forgive me benevolent human overlord...");
             }
+            finally
+            {
+                if (!extraInputRequired)
+                    context.Wait(MessageReceived);
+            }
+        }
 
+        private async Task UserDeleteOrderCompleted(IDialogContext context, IAwaitable<UserDeleteOrder> result)
+        {
+            try
+            {
+                var order = await result;
+
+                var didDelete = DeleteUser(order.Id);
+                if (didDelete)
+                    await context.PostAsync($"You successfully deleted the user with id : {order.Id}");
+                else
+                    await context.PostAsync($"Failed to delete user.");
+            }
+            catch (OperationCanceledException)
+            {
+                await context.PostAsync("You canceled the form!");
+                return;
+            }
+            catch (Exception e)
+            {
+                await context.PostAsync(e.Message);
+            }
             context.Wait(MessageReceived);
+        }
+
+        private bool DeleteUser(string userId)
+        {
+            var users = Api.Users.getUsers();
+            if (users.Value.IsNone())
+                throw new Exception("Placeholder exception for failing to update user.");
+
+            var deleteUser = users.Value.Value.SingleOrDefault(u => u.UserId.Equals(userId));
+
+            if (deleteUser == null)
+                throw new Exception("Placeholder exception for failing to update user.");
+
+            var isDeleted = Api.Users.deleteUser(deleteUser.Id);
+
+            if (isDeleted.StatusCode == 404)
+                throw new Exception($"Couldnt find user with id: {userId}");
+
+            return true;
         }
 
         [LuisIntent("None")]

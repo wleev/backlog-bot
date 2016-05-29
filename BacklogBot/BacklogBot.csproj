@@ -115,6 +115,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\BacklogDialog.cs" />
+    <Compile Include="Dialogs\Orders\UserDeleteOrder.cs" />
+    <Compile Include="Dialogs\Orders\UserUpdateOrder.cs" />
     <Compile Include="Dialogs\Orders\UserCreationOrder.cs" />
     <Compile Include="Extensions\FSharpOption.cs" />
     <Compile Include="Global.asax.cs">

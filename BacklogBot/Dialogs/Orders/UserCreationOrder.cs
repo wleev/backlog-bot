@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using static Backlog.Client.Models;
 
 namespace BacklogBot.Dialogs.Orders
 {
@@ -27,16 +28,20 @@ namespace BacklogBot.Dialogs.Orders
         [Describe("the id of the role you'd like to assign this user")]
         public int? Role;
 
-        public UserCreationOrder(BacklogUser unfinishedUser)
+        public UserCreationOrder()
         {
-            Id = unfinishedUser.Id;
-            Name = unfinishedUser.Name;
-            MailAddress = unfinishedUser.Email;
-            Password = unfinishedUser.Password;
-            Role = BacklogRole.FindMatchingRoleByName(unfinishedUser.Role)?.Id;
         }
 
-        public static IForm<UserCreationOrder> CreateForm()
+        public UserCreationOrder(User unfinishedUser)
+        {
+            Id = unfinishedUser.UserId;
+            Name = unfinishedUser.Name;
+            MailAddress = unfinishedUser.MailAddress;
+            Password = unfinishedUser.Password;
+            Role = unfinishedUser.RoleType;
+        }
+
+        public static IForm<UserCreationOrder> CreateAddForm()
         {
             var formBuilder = new FormBuilder<UserCreationOrder>()
                 .Message("There seem to have been some missing fields when you tried to add a user. Let's try to resolve those now.");
@@ -45,7 +50,7 @@ namespace BacklogBot.Dialogs.Orders
             ActiveDelegate<UserCreationOrder> doesntHaveName = (user) => String.IsNullOrEmpty(user.Name);
             ActiveDelegate<UserCreationOrder> doesntHaveMail = (user) => String.IsNullOrEmpty(user.MailAddress);
             ActiveDelegate<UserCreationOrder> doesntHavePassword = (user) => String.IsNullOrEmpty(user.Password);
-            ActiveDelegate<UserCreationOrder> doesntHaveRole = (user) => !user.Role.HasValue;
+            ActiveDelegate<UserCreationOrder> doesntHaveRole = (user) => !user.Role.HasValue || user.Role < 0;
 
             ValidateAsyncDelegate<UserCreationOrder> passwordHasMinLength = async (state, response) =>
             {

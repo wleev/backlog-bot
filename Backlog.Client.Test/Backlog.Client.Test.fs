@@ -1,5 +1,8 @@
 ﻿module Backlog.Client.Test
 
+#if DEBUG
+System.Linq.Enumerable.Count([]) |> ignore
+#endif
 // https://github.com/fsharp/FsCheck/blob/master/Docs/Documentation.md
 // https://github.com/fsharp/FsUnit
 // https://code.google.com/p/unquote/
@@ -14,8 +17,26 @@ open Swensen.Unquote
 
 // all tests are failing
 
-// Note on FsCheck tests: The NUnit test runner will still green-light failing tests with Check.Quick 
+// Note on FsCheck tests: The NUnit test runner will still green-light failing tests with Check.Quick
 // even though it reports them as failing. Use Check.QuickThrowOnFailure instead.
+
+[<Test>]
+let ``Getting update form values for a user should only return the fields that aren't null/None`` ()=
+    let user = new User()
+    user.Name <- "someName"
+    user.RoleType <- 1
+    let expected = Seq.sort ["name", "someName"; "roleType", "1"]
+    let outcome = user.ToUpdateFormValues |> Seq.sort
+    outcome |> should equal expected
+
+    let user = new User()
+    user.Name <- "someName"
+    user.MailAddress <- "wlee@isabot.net"
+    let outcome1 = Seq.sort(["name", "someName"; "mailAddress", "wlee@isabot.net"])
+    user.ToUpdateFormValues |> Seq.sort |> should equal outcome1
+
+    let user = new User()
+    user.ToUpdateFormValues |> Seq.sort |> should equal []
 
 [<Test>]
 let ``Getting user with id 76964 from Backlog space should return user wlee with email address "wlee at isabot.net"`` ()=

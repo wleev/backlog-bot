@@ -15,33 +15,37 @@ type Http =
         | Post -> Some(HttpPost url dataVal)
         | Patch -> Some(HttpPatch url dataVal)
 
+type Response<'T>(statusCode : int, value : 'T option) =
+    member this.StatusCode = statusCode
+    member this.Value = value
+
 module Users =
     let baseUrl = "https://boop.backlogtool.com/api/v2/users"
 
     let getUsers() =
         match Http.Request(baseUrl, Get) with
-        | Some response -> HttpBodyToEntity<list<User>> response.Body
-        | None -> Some []
+        | Some response -> new Response<User list>(response.StatusCode, HttpBodyToEntity<list<User>>(response.Body))
+        | None -> new Response<User list>(-1, None)
 
     let getUserById (id : int) =
         let getUrl = baseUrl + "/" + id.ToString()
         match Http.Request(getUrl, Get) with
-        | Some response -> HttpBodyToEntity<User> response.Body
-        | None -> None
+        | Some response -> new Response<User>(response.StatusCode, HttpBodyToEntity<User> response.Body)
+        | None -> new Response<User>(-1, None)
 
     let addUser (user : User) =
         match Http.Request(baseUrl, Post, user.ToAddFormValues) with
-        | Some response -> HttpBodyToEntity<User> response.Body
-        | None -> None
+        | Some response -> new Response<User>(response.StatusCode, HttpBodyToEntity<User> response.Body)
+        | None -> new Response<User>(-1, None)
 
     let updateUser (user : User) =
         let updateUrl = baseUrl + "/" + user.Id.ToString()
         match Http.Request(updateUrl, Patch, user.ToUpdateFormValues) with
-        | Some response -> HttpBodyToEntity<User> response.Body
-        | None -> None
+        | Some response -> new Response<User>(response.StatusCode, HttpBodyToEntity<User> response.Body)
+        | None -> new Response<User>(-1, None)
 
     let deleteUser (id : int) =
         let deleteUrl = baseUrl + "/" + id.ToString()
         match Http.Request(deleteUrl, Delete) with
-        | Some response -> response.StatusCode.Equals 200
-        | _ -> false
+        | Some response -> new Response<int>(response.StatusCode, Some id)
+        | _ -> new Response<int>(-1, Some id)
