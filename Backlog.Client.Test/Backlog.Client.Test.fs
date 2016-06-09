@@ -40,48 +40,53 @@ let ``Getting update form values for a user should only return the fields that a
 
 [<Test>]
 let ``Getting user with id 76964 from Backlog space should return user wlee with email address "wlee at isabot.net"`` ()=
-    let user = Users.getUserById 76964
-    user.IsSome |> should equal true
-    user.Value.MailAddress |> should equal "wlee@isabot.net"
+    let userResponse = Users.getUserById 76964
+    userResponse.StatusCode |> should equal 200
+    userResponse.Value.IsSome |> should equal true
+    userResponse.Value.Value.MailAddress |> should equal "wlee@isabot.net"
 
 [<Test>]
 let ``Getting all users from sample Backlog space should at least contain these users: wlee and agata`` () =
-    let users = Users.getUsers()
-    users.IsSome |> should equal true
-    users.Value |> List.map (fun u -> u.UserId) |> should contain "wlee"
-    users.Value |> List.map (fun u -> u.UserId) |> should contain "agata"
+    let usersResponse = Users.getUsers()
+    usersResponse.StatusCode |> should equal 200
+    usersResponse.Value.IsSome |> should equal true
+    usersResponse.Value.Value |> List.map (fun u -> u.UserId) |> should contain "wlee"
+    usersResponse.Value.Value |> List.map (fun u -> u.UserId) |> should contain "agata"
 
 [<Test>]
 let ``Adding user should return an updated user object with id and after removing it, it should no longer show up in all users list`` () =
     let newUser = User("sampleUserId", "Sample User", "sampleP@ssw0rd123", 2, "sample@user.com")
-    let createdUser = Users.addUser newUser
+    let createdResponse = Users.addUser newUser
 
-    createdUser.IsSome |> should equal true
-    createdUser.Value.Id |> should be (greaterThan 0)
+    createdResponse .StatusCode |> should equal 201
+    createdResponse.Value.IsSome |> should equal true
+    createdResponse .Value.Value.Id |> should be (greaterThan 0)
 
-    let hasDeletedUser = Users.deleteUser createdUser.Value.Id
-    hasDeletedUser |> should equal true
-    let users = Users.getUsers()
-    users.Value |> List.map (fun u -> u.UserId) |> should not' (contain "sampleUserId")
+    let createdUser = createdResponse.Value.Value
+
+    let hasDeletedUser = Users.deleteUser createdUser.Id
+    hasDeletedUser.StatusCode |> should equal 200
+    let usersResponse = Users.getUsers()
+    usersResponse.Value.Value |> List.map (fun u -> u.UserId) |> should not' (contain "sampleUserId")
 
 [<Test>]
 let ``Adding and updating new user should return updated user object, user lists should no longer yield newly created user after deleting it`` () =
     let newUser = User("otherUserId", "Sample User", "sampleP@ssw0rd123", 2, "sample@user.com")
-    let createdUser = Users.addUser newUser
-    let postAddUsers = Users.getUsers()
+    let createdResponse = Users.addUser newUser
+    let usersResponse = Users.getUsers()
 
-    createdUser.IsSome |> should equal true
-    createdUser.Value.Id |> should be (greaterThan 0)
-    postAddUsers.Value |> List.map (fun u -> u.UserId) |> should contain "otherUserId"
+    createdResponse.Value.IsSome |> should equal true
+    createdResponse.Value.Value.Id |> should be (greaterThan 0)
+    usersResponse.Value.Value |> List.map (fun u -> u.UserId) |> should contain "otherUserId"
 
-    let updatingUser = createdUser.Value
+    let updatingUser = createdResponse.Value.Value
     updatingUser.Name <- "Random username 123#"
-    let updatedUser = Users.updateUser updatingUser
+    let updatedResponse = Users.updateUser updatingUser
 
-    let postUpdateUsers = Users.getUsers()
-    postUpdateUsers.Value |> List.map (fun u -> u.Name) |> should contain "Random username 123#"
+    let usersResponse = Users.getUsers()
+    usersResponse.Value.Value |> List.map (fun u -> u.Name) |> should contain "Random username 123#"
 
-    let hasDeletedUser = Users.deleteUser createdUser.Value.Id
-    hasDeletedUser |> should equal true
-    let postDeleteUsers = Users.getUsers()
-    postDeleteUsers.Value |> List.map (fun u -> u.UserId) |> should not' (contain "otherUserId")
+    let hasDeletedUser = Users.deleteUser createdResponse.Value.Value.Id
+    hasDeletedUser.StatusCode |> should equal 200
+    let usersResponse = Users.getUsers()
+    usersResponse.Value.Value |> List.map (fun u -> u.UserId) |> should not' (contain "otherUserId")
